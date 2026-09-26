@@ -3,527 +3,304 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KuisKu Online – Game Kuis Multiplayer</title>
-
-<!-- Tailwind CSS (play CDN) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-try {
-  tailwind.config = {
-    theme: { extend: {
-      colors: {
-        bg: 'var(--bg)', ink: 'var(--ink)', muted: 'var(--muted)', card: 'var(--card)', line: 'var(--line)',
-        brand: 'var(--brand)', good: 'var(--good)', bad: 'var(--bad)',
-        c1: 'var(--c1)', c2: 'var(--c2)', c3: 'var(--c3)', c4: 'var(--c4)'
-      },
-      fontFamily: {
-        sans: ['ui-rounded', '"SF Pro Rounded"', '"Hiragino Maru Gothic ProN"', 'Nunito', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'sans-serif']
-      }
-    } }
-  };
-} catch (e) {}
-</script>
-
+<title>Ceritanya Kuis</title>
 <style>
   :root{
     --bg:#f1efff; --ink:#221b4d; --muted:#6b6690; --card:#ffffff; --line:#dcd8f5;
     --brand:#5b3df5; --brand-d:#4327d1; --good:#1fa66a; --bad:#e5484d;
     --c1:#e5484d; --c2:#2f6fed; --c3:#e0a100; --c4:#1fa66a;
     color-scheme: light dark;
-    box-sizing:border-box;
-    padding-top:env(safe-area-inset-top,0px);
-    padding-bottom:env(safe-area-inset-bottom,0px);
   }
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){ --bg:#17133a; --ink:#f2f0ff; --muted:#a9a3d6; --card:#221d52; --line:#3a3378; }
+    :root{ --bg:#17133a; --ink:#f2f0ff; --muted:#a9a3d6; --card:#221d52; --line:#3a3378; }
   }
-  :root[data-theme="dark"]{ --bg:#17133a; --ink:#f2f0ff; --muted:#a9a3d6; --card:#221d52; --line:#3a3378; }
-  html{ scroll-padding-top:env(safe-area-inset-top,0px); overflow-y:scroll; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-  body{ margin:0; background:var(--bg); color:var(--ink); -webkit-tap-highlight-color:transparent; }
-  /* Aplikasi baru ditampilkan setelah Tailwind selesai membuat CSS, supaya tidak ada loncatan saat dibuka */
-  #app{ visibility:hidden; }
-  #app.ready{ visibility:visible; }
+  * { box-sizing: border-box; }
+  html { padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 700;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  h1, h2, h3 { margin: 0; }
+  #app { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { display: flex; justify-content: space-between; align-items: center; height: 44px; margin-bottom: 16px; }
+  .logo { font-size: 24px; font-weight: 800; }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: 0 4px 0 var(--line); }
+  .card + .card { margin-top: 16px; }
+  input[type=text] {
+    width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line);
+    background: var(--bg); color: var(--ink); font: inherit; font-weight: 700;
+  }
+  label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 14px;
+    padding: 13px 20px; background: var(--brand); color: #fff; font: inherit; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 0 var(--brand-d); width: 100%;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brand-d); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.ghost { background: var(--card); color: var(--ink); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); }
+  .btn.small { width: auto; padding: 9px 14px; font-size: 14px; }
+  .err { min-height: 20px; color: var(--bad); font-size: 14px; margin-top: 8px; }
+  .quiz-list { display: grid; gap: 10px; margin-bottom: 16px; }
+  .quiz-opt {
+    text-align: left; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line);
+    background: var(--bg); cursor: pointer; font: inherit; font-weight: 700; color: var(--ink);
+  }
+  .quiz-opt.sel { border-color: var(--brand); background: var(--card); }
+  .quiz-opt small { display: block; color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .code-box { font-size: 46px; text-align: center; letter-spacing: .2em; padding-left: .2em; font-weight: 800; margin: 6px 0; }
+  .player-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); margin-bottom: 8px; }
+  .player-row .av { font-size: 22px; }
+  .player-row .nm { flex: 1; }
+  .player-row .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .player-row .dot.on { background: var(--good); }
+  .muted { color: var(--muted); font-size: 14px; }
+  .progress { height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 10px 0; }
+  .progress > div { height: 100%; background: var(--c3); border-radius: 99px; transition: width .3s; }
+  .progress > div.ready { background: var(--good); }
+  .timer-bar { height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; margin-bottom: 6px; }
+  .timer-bar > div { height: 100%; border-radius: 99px; }
+  .qtext { font-size: 22px; text-align: center; padding: 20px 6px; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .opt {
+    color: #fff; border: 0; border-radius: 14px; min-height: 90px; padding: 12px; font: inherit; font-weight: 800;
+    text-align: left; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-size: 16px;
+  }
+  .opt:disabled { cursor: default; }
+  .opt.o0 { background: var(--c1); } .opt.o1 { background: var(--c2); } .opt.o2 { background: var(--c3); } .opt.o3 { background: var(--c4); }
+  .opt.dim { opacity: .35; }
+  .opt.right { outline: 4px solid var(--good); outline-offset: 3px; }
+  .opt.wrong { outline: 4px solid var(--bad); outline-offset: 3px; }
+  .banner { border-radius: 14px; padding: 14px 16px; color: #fff; text-align: center; margin-top: 14px; }
+  .banner.ok { background: var(--good); } .banner.no { background: var(--bad); }
+  .center { text-align: center; }
+  .big-num { font-size: 90px; font-weight: 800; color: var(--brand); line-height: 1; margin: 10px 0; }
+  ul.standings { list-style: none; padding: 0; margin: 0; }
+  ul.standings li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); margin-bottom: 6px; }
+  ul.standings li .rank { width: 22px; color: var(--muted); }
+  #offline {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: var(--ink); color: var(--bg);
+    padding: 10px 18px; border-radius: 99px; font-size: 14px; display: none; z-index: 10;
+  }
+  #offline.show { display: block; }
 </style>
 </head>
-<body class="font-sans font-bold antialiased">
-<noscript><p style="padding:24px">Aktifkan JavaScript untuk memainkan KuisKu.</p></noscript>
-<div id="app" class="mx-auto w-full max-w-[980px] px-4 pt-4 pb-16"></div>
-<div id="conn" class="hidden fixed left-1/2 -translate-x-1/2 bottom-4 z-40 rounded-full bg-ink text-bg px-4 py-2 text-sm">Menyambung ulang…</div>
-<div id="seed" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;visibility:hidden"></div>
+<body>
+<div id="app"></div>
+<div id="offline">Menyambung ulang…</div>
 
 <script>
 /* =====================================================================
-   KuisKu Online – klien (browser)
-   Semua logika penting (soal, kunci jawaban, waktu, skor) ada di server.
-   Klien hanya menampilkan state yang dikirim server lewat SSE.
+   KuisKu Online (versi sederhana) – klien
+   Semua yang penting (soal, kunci jawaban, minimal pemain, skor)
+   ditentukan oleh fungsi backend di /api/*. Halaman ini hanya
+   menampilkan hasilnya dan mengambil status terbaru setiap ~1 detik.
    ===================================================================== */
-
-/* ---------- Utilitas ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const mkStore = area => ({
-  get(k, d) { try { const v = area().getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-  set(k, v) { try { area().setItem(k, JSON.stringify(v)); } catch (e) {} },
-  del(k) { try { area().removeItem(k); } catch (e) {} }
-});
-const store = mkStore(() => localStorage);      // nama & pengaturan suara
-const sess = mkStore(() => sessionStorage);     // sesi ruang (per tab, supaya bisa uji 2 tab)
 
-/* ---------- Kelas Tailwind yang dipakai berulang ---------- */
-const CARD_BASE = 'bg-card rounded-[18px] border-2 shadow-[0_4px_0_var(--line)]';
-const CARD = CARD_BASE + ' border-line';
-function btn(kind = 'primary', size = 'md') {
-  const base = 'inline-flex items-center justify-center rounded-2xl font-extrabold select-none touch-manipulation whitespace-nowrap transition-transform active:translate-y-[3px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-c3';
-  const sz = size === 'sm' ? 'px-3.5 py-2 text-sm' : 'px-5 py-3 text-base';
-  const k = {
-    primary: 'text-white bg-brand shadow-[0_4px_0_var(--brand-d)] active:shadow-[0_1px_0_var(--brand-d)]',
-    ghost:   'text-ink bg-card border-2 border-line shadow-[0_4px_0_var(--line)] active:shadow-[0_1px_0_var(--line)]',
-    danger:  'text-white bg-bad shadow-[0_4px_0_#a92a2f] active:shadow-[0_1px_0_#a92a2f]'
-  }[kind];
-  return `${base} ${sz} ${k}`;
-}
-const INPUT = 'w-full rounded-xl border-2 border-line bg-bg px-3.5 py-3 text-base focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-c3';
-const OPT_BG = ['bg-c1', 'bg-c2', 'bg-c3', 'bg-c4'];
-const SHAPES = ['▲', '◆', '●', '■'];
-const barCls = r => 'h-full rounded-full ' + (r > .5 ? 'bg-good' : r > .25 ? 'bg-c3' : 'bg-bad');
-
-/* ---------- Suara ---------- */
-let muted = store.get('kq_muted', false), ac;
-function beep(freq, dur = .12, type = 'sine', delay = 0) {
-  if (muted) return;
-  try {
-    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-    const o = ac.createOscillator(), g = ac.createGain();
-    o.type = type; o.frequency.value = freq; g.gain.value = .07;
-    o.connect(g); g.connect(ac.destination);
-    o.start(ac.currentTime + delay); o.stop(ac.currentTime + delay + dur);
-  } catch (e) {}
-}
-const sfx = {
-  ok()   { beep(660, .1, 'triangle'); beep(880, .16, 'triangle', .1); },
-  no()   { beep(220, .25, 'sawtooth'); },
-  tick() { beep(500, .04, 'square'); },
-  join() { beep(740, .08, 'triangle'); },
-  win()  { [523, 659, 784, 1046].forEach((f, i) => beep(f, .18, 'triangle', i * .12)); }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
-
-/* ---------- State ---------- */
-const C = {
-  name: store.get('kq_name', ''), quizzes: [], quizId: '', joinCode: '', invited: false,
-  session: sess.get('kq_session', null), st: null, skew: 0, es: null,
-  picked: -1, err: '', busy: false, renderKey: '', lastTickSec: -1
+const sess = {
+  get(k, d) { try { const v = sessionStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
 };
-let pendingYes = null;
 
 async function api(path, body) {
   const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
   let data = {}; try { data = await r.json(); } catch (e) {}
-  if (!r.ok) throw new Error(data.error || 'Terjadi kesalahan. Coba lagi.');
+  if (!r.ok) { const err = new Error(data.error || 'Terjadi kesalahan.'); err.status = r.status; throw err; }
   return data;
 }
+
+const C = {
+  name: store.get('kq_name', ''), quizzes: [], quizId: '', joinCode: '',
+  session: sess.get('kq_session', null), st: null, skew: 0, picked: -1, err: '',
+  poller: null, inFlight: false, renderKey: ''
+};
 const authBody = () => ({ code: C.session.code, pid: C.session.pid, token: C.session.token });
 
-/* ---------- Toast & modal ---------- */
-function toast(msg) {
-  const t = document.createElement('div');
-  t.className = 'fixed left-1/2 -translate-x-1/2 bottom-16 z-50 max-w-[90vw] rounded-2xl bg-ink text-bg px-5 py-3 text-sm text-center';
-  t.textContent = msg; document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2600);
-}
-function confirmHTML(msg) {
-  return `<div class="fixed inset-0 z-30 grid place-items-center p-4 bg-black/50" id="ov">
-    <div class="${CARD} w-full max-w-[420px] p-5" role="dialog" aria-modal="true">
-      <p class="text-lg mb-5">${esc(msg)}</p>
-      <div class="flex justify-end gap-3">
-        <button data-act="mcancel" class="${btn('ghost')}">Batal</button>
-        <button data-act="myes" class="${btn('danger')}">Ya</button>
-      </div>
-    </div></div>`;
-}
-function askConfirm(msg, yes) { closeModal(); pendingYes = yes; document.body.insertAdjacentHTML('beforeend', confirmHTML(msg)); }
-function closeModal() { const o = document.getElementById('ov'); if (o) o.remove(); }
-function setOffline(v) { const el = $('#conn'); if (el) el.classList.toggle('hidden', !v); }
-
-/* =====================================================================
-   VIEWS
-   ===================================================================== */
 function render() {
-  const st = C.st, inRoom = !!C.session;
-  const head = `
-    <header class="flex items-center justify-between h-11 mb-4">
-      <button data-act="logo" class="flex items-center gap-2 text-[26px] font-extrabold tracking-tight select-none touch-manipulation">
-        <span class="grid place-items-center w-9 h-9 rounded-xl bg-brand text-white -rotate-6 text-xl">?</span>KuisKu
-      </button>
-      <div class="flex gap-2">
-        <button data-act="mute" aria-label="Suara" class="${btn('ghost', 'sm')} w-11">${muted ? '🔇' : '🔊'}</button>
-        ${inRoom ? `<button data-act="leave" class="${btn('ghost', 'sm')}">Keluar</button>` : ''}
-      </div>
-    </header>`;
+  const inRoom = !!C.session;
+  const head = `<header><span class="logo">🎯 KuisKu</span>${inRoom ? `<button class="btn ghost small" data-act="leave">Keluar</button>` : ''}</header>`;
   let body;
   if (!inRoom) body = viewHome();
-  else if (!st) body = viewConnecting();
-  else body = ({ lobby: viewLobby, countdown: viewCountdown, question: viewGame, reveal: viewGame, finished: viewResult }[st.phase] || viewLobby)(st);
+  else if (!C.st) body = `<div class="card center"><p class="muted">Menyambungkan ke ruang…</p></div>`;
+  else body = ({ lobby: viewLobby, countdown: viewCountdown, question: viewGame, reveal: viewGame, finished: viewResult }[C.st.phase] || viewLobby)(C.st);
   $('#app').innerHTML = head + body;
 }
 
 /* ---------- Beranda ---------- */
 function viewHome() {
-  const quizCards = C.quizzes.map(z => {
-    const sel = z.id === C.quizId;
-    return `<button data-act="pick" data-id="${esc(z.id)}" aria-pressed="${sel}"
-      class="${CARD_BASE} ${sel ? 'border-brand' : 'border-line'} p-4 text-left touch-manipulation">
-      <span class="flex items-center gap-2 text-base font-extrabold leading-tight">
-        <span class="grid place-items-center w-5 h-5 rounded-full border-2 ${sel ? 'border-brand bg-brand text-white' : 'border-line'} text-[11px] shrink-0">${sel ? '✓' : ''}</span>
-        ${esc(z.title)}
-      </span>
-      <span class="block text-sm text-muted mt-1 pl-7">${z.count} soal</span>
-    </button>`;
-  }).join('') || `<p class="text-muted">Memuat daftar kuis…</p>`;
+  const quizButtons = C.quizzes.map(z => `
+    <button class="quiz-opt ${z.id === C.quizId ? 'sel' : ''}" data-act="pick" data-id="${esc(z.id)}">
+      ${esc(z.title)}<small>${z.count} soal</small>
+    </button>`).join('') || '<p class="muted">Memuat daftar kuis…</p>';
   return `
-    <section class="mb-6">
-      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">Main bareng, siapa tercepat?</h1>
-      <p class="text-muted text-lg mt-3 max-w-[560px]">Buat ruang, bagikan kodenya, dan tunggu temanmu bergabung. Game baru bisa dimulai kalau pemain sudah minimal 2 orang.</p>
-    </section>
-    ${C.invited ? `<div class="rounded-2xl bg-brand text-white px-4 py-3 mb-4">Kamu diundang ke ruang <b class="tracking-widest">${esc(C.joinCode)}</b>. Isi namamu, lalu tekan Gabung.</div>` : ''}
-    <div class="${CARD} p-5 mb-4">
-      <label for="nm" class="block text-sm text-muted mb-1.5">Nama pemain</label>
-      <input id="nm" type="text" maxlength="16" placeholder="Tulis namamu" value="${esc(C.name)}" autocomplete="off" class="${INPUT}">
-      <p id="err" class="h-6 mt-2 text-sm text-bad">${esc(C.err)}</p>
+    <div class="card">
+      <label for="nm">Nama pemain</label>
+      <input id="nm" type="text" maxlength="16" placeholder="Tulis namamu" value="${esc(C.name)}">
+      <p class="err">${esc(C.err)}</p>
     </div>
-    <div class="grid gap-4 md:grid-cols-[1.4fr_1fr] items-start">
-      <div class="${CARD} p-5">
-        <h2 class="text-xl font-extrabold mb-3">Buat ruang baru</h2>
-        <div class="grid gap-3 sm:grid-cols-2 mb-4">${quizCards}</div>
-        <button data-act="create" class="${btn()} w-full">Buat ruang</button>
-      </div>
-      <div class="${CARD} p-5">
-        <h2 class="text-xl font-extrabold mb-3">Gabung dengan kode</h2>
-        <label for="code" class="block text-sm text-muted mb-1.5">Kode ruang</label>
-        <input id="code" type="text" maxlength="5" placeholder="ABCDE" value="${esc(C.joinCode)}" autocomplete="off" autocapitalize="characters" spellcheck="false"
-          class="${INPUT} text-center text-2xl tracking-[.3em] uppercase mb-4">
-        <button data-act="join" class="${btn()} w-full">Gabung</button>
-      </div>
+    <div class="card">
+      <h2>Buat ruang baru</h2>
+      <p class="muted" style="margin:6px 0 14px">Pilih kuis, lalu bagikan kode ke temanmu.</p>
+      <div class="quiz-list">${quizButtons}</div>
+      <button class="btn" data-act="create">Buat ruang</button>
+    </div>
+    <div class="card">
+      <h2>Gabung dengan kode</h2>
+      <p class="muted" style="margin:6px 0 14px">Masukkan kode 5 karakter dari temanmu.</p>
+      <input id="code" type="text" maxlength="5" placeholder="ABCDE" autocapitalize="characters" value="${esc(C.joinCode)}" style="text-align:center;font-size:22px;letter-spacing:.2em;margin-bottom:12px">
+      <button class="btn" data-act="join">Gabung</button>
     </div>`;
-}
-function viewConnecting() {
-  return `<div class="${CARD} p-8 text-center h-[200px] grid place-items-center"><p class="text-lg text-muted animate-pulse">Menyambungkan ke ruang…</p></div>`;
 }
 
 /* ---------- Ruang tunggu ---------- */
 function viewLobby(st) {
-  const need = st.min, have = st.connected, ready = have >= need;
-  const isHost = st.hostId === st.you.id;
-  const pct = Math.min(100, Math.round(have / need * 100));
-  const slots = st.players.map(p => `
-    <div class="flex items-center gap-3 rounded-2xl bg-bg border-2 ${p.id === st.you.id ? 'border-brand' : 'border-transparent'} px-3 h-[56px] ${p.connected ? '' : 'opacity-50'}">
-      <span class="text-2xl w-8 text-center">${p.av}</span>
-      <span class="flex-1 min-w-0 truncate">${esc(p.name)}${p.id === st.you.id ? ' (kamu)' : ''}</span>
-      ${p.id === st.hostId ? '<span class="text-xs rounded-full bg-c3 text-white px-2 py-0.5">host</span>' : ''}
-      <span class="w-2.5 h-2.5 rounded-full ${p.connected ? 'bg-good' : 'bg-line'}"></span>
-    </div>`);
-  for (let i = st.players.length; i < need; i++) {
-    slots.push(`<div class="flex items-center justify-center rounded-2xl border-2 border-dashed border-line h-[56px] text-muted text-sm animate-pulse">Menunggu pemain…</div>`);
-  }
-  const link = `${location.origin}/?room=${st.code}`;
-  const action = isHost
-    ? `<button data-act="start" ${ready ? '' : 'disabled'} class="${btn()} w-full h-[52px] disabled:opacity-40 disabled:cursor-not-allowed">Mulai game</button>`
-    : `<div class="h-[52px] grid place-items-center text-muted text-center text-sm">${ready ? 'Menunggu host memulai game…' : 'Menunggu pemain lain bergabung…'}</div>`;
+  const ready = st.connected >= st.min;
+  const pct = Math.min(100, Math.round(st.connected / st.min * 100));
+  const rows = st.players.map(p => `
+    <div class="player-row"><span class="av">${p.av}</span><span class="nm">${esc(p.name)}</span><span class="dot ${p.connected ? 'on' : ''}"></span></div>`).join('');
   return `
-  <section class="mx-auto w-full max-w-[640px]">
-    <div class="${CARD} p-5 text-center mb-4">
-      <p class="text-sm text-muted">${esc(st.quizTitle)}</p>
-      <p class="text-sm text-muted mt-2">Kode ruang</p>
-      <p class="text-5xl sm:text-6xl font-extrabold tracking-[.25em] pl-[.25em] my-1 tabular-nums">${esc(st.code)}</p>
-      <div class="flex gap-2 mt-3">
-        <input id="lnk" readonly value="${esc(link)}" aria-label="Link undangan" class="${INPUT} !py-2 text-sm">
-        <button data-act="share" class="${btn('ghost', 'sm')} shrink-0">Bagikan</button>
-      </div>
+    <div class="card center">
+      <p class="muted">${esc(st.quizTitle)}</p>
+      <p class="muted" style="margin-top:10px">Kode ruang</p>
+      <div class="code-box">${esc(st.code)}</div>
+      <p class="muted">Bagikan kode ini ke teman yang ingin ikut main.</p>
     </div>
-
-    <div class="${CARD} p-5">
-      <div class="flex items-baseline justify-between mb-2">
-        <h2 class="text-xl font-extrabold">Ruang tunggu</h2>
-        <span class="text-sm tabular-nums ${ready ? 'text-good' : 'text-muted'}">${have}/${need} pemain</span>
-      </div>
-      <div class="h-3 rounded-full bg-line overflow-hidden mb-2"><div class="h-full rounded-full ${ready ? 'bg-good' : 'bg-c3'}" style="width:${pct}%"></div></div>
-      <p class="h-6 text-sm ${ready ? 'text-good' : 'text-muted'} mb-3">${ready ? 'Pemain sudah cukup. Game siap dimulai.' : `Butuh ${need - have} pemain lagi untuk memulai.`}</p>
-      <div class="grid gap-2 sm:grid-cols-2 mb-4">${slots.join('')}</div>
-      ${action}
-    </div>
-  </section>`;
+    <div class="card">
+      <h2>Ruang tunggu (${st.connected}/${st.min} pemain)</h2>
+      <div class="progress"><div class="${ready ? 'ready' : ''}" style="width:${pct}%"></div></div>
+      <p class="muted" style="margin-bottom:14px">${ready ? 'Pemain sudah cukup, game siap dimulai.' : `Menunggu ${st.min - st.connected} pemain lagi…`}</p>
+      ${rows}
+      <button class="btn" data-act="start" ${ready ? '' : 'disabled'} style="margin-top:8px">Mulai game</button>
+    </div>`;
 }
 
 /* ---------- Hitung mundur ---------- */
 function viewCountdown(st) {
   const n = Math.max(1, Math.ceil((st.endsAt - (Date.now() + C.skew)) / 1000));
-  return `
-  <section class="mx-auto w-full max-w-[640px]">
-    <div class="${CARD} h-[300px] flex flex-col items-center justify-center text-center">
-      <p class="text-lg text-muted">Bersiap, game dimulai…</p>
-      <p id="cd" class="text-[120px] leading-none font-extrabold text-brand tabular-nums">${n}</p>
-      <p class="text-sm text-muted">${esc(st.quizTitle)} · ${st.connected} pemain</p>
-    </div>
-  </section>`;
+  return `<div class="card center"><p class="muted">Bersiap, game dimulai…</p><div id="cd" class="big-num">${n}</div></div>`;
 }
 
 /* ---------- Game ---------- */
-function hudHTML(st) {
-  const y = st.you;
-  const cell = (label, val) => `
-    <div class="h-[54px] rounded-xl bg-card border-2 border-line flex flex-col items-center justify-center leading-none">
-      <span class="text-[11px] text-muted mb-1">${label}</span>
-      <span class="text-lg font-extrabold tabular-nums">${val}</span>
-    </div>`;
-  return cell('Soal', `${st.q.index + 1}/${st.q.total}`) + cell('Skor', y.score) + cell('Streak', y.streak + '🔥') + cell('Peringkat', '#' + y.rank);
-}
 function pickedIdx(st) { return C.picked >= 0 ? C.picked : st.q.picked; }
 function optsHTML(st) {
   const q = st.q, rev = st.phase === 'reveal', picked = pickedIdx(st);
   return q.options.map((t, i) => {
-    let ring = '', mark = '';
-    if (rev) {
-      if (i === st.reveal.correct) { ring = ' ring-4 ring-good ring-offset-2 ring-offset-bg'; mark = '<span class="absolute top-1.5 right-1.5 grid place-items-center w-7 h-7 rounded-full bg-white text-good text-base">✓</span>'; }
-      else if (i === picked) { ring = ' ring-4 ring-bad ring-offset-2 ring-offset-bg'; mark = '<span class="absolute top-1.5 right-1.5 grid place-items-center w-7 h-7 rounded-full bg-white text-bad text-base">✕</span>'; }
-      else ring = ' opacity-40';
-    } else if (picked >= 0) {
-      ring = i === picked ? ' ring-4 ring-brand ring-offset-2 ring-offset-bg' : ' opacity-50';
-    }
+    let cls = 'opt o' + i;
+    if (rev) { if (i === st.reveal.correct) cls += ' right'; else if (i === picked) cls += ' wrong'; else cls += ' dim'; }
+    else if (picked >= 0 && i !== picked) cls += ' dim';
     const locked = rev || picked >= 0;
-    return `<button data-act="ans" data-i="${i}" ${locked ? 'disabled' : ''}
-      class="relative flex items-center gap-2 h-[104px] sm:h-[112px] px-3 rounded-2xl text-white text-left text-[15px] sm:text-xl leading-tight shadow-[0_5px_0_rgba(0,0,0,.25)] select-none touch-manipulation ${OPT_BG[i]} ${locked ? '' : 'active:translate-y-1 active:shadow-[0_1px_0_rgba(0,0,0,.25)]'} transition-transform disabled:cursor-default${ring}">
-      <span class="shrink-0 grid place-items-center w-7 h-7 rounded-lg bg-white/25 text-sm">${SHAPES[i]}</span>
-      <span class="line-clamp-4 min-w-0 pr-5">${esc(t)}</span>${mark}
-    </button>`;
+    return `<button class="${cls}" data-act="ans" data-i="${i}" ${locked ? 'disabled' : ''}>${esc(t)}</button>`;
   }).join('');
 }
 function zoneHTML(st) {
   if (st.phase === 'reveal') {
-    const r = st.reveal, ok = r.gain > 0, picked = pickedIdx(st);
-    const msg = ok ? (st.you.streak >= 3 ? `Streak ${st.you.streak}!` : 'Benar!') : (picked < 0 ? 'Waktu habis' : 'Belum tepat');
-    const secs = Math.max(0, Math.ceil((r.nextAt - (Date.now() + C.skew)) / 1000));
-    return `<div class="h-full rounded-2xl px-4 flex items-center gap-3 text-white ${ok ? 'bg-good' : 'bg-bad'}">
-        <div class="flex-1 min-w-0">
-          <div class="text-xl font-extrabold leading-tight truncate">${msg}</div>
-          <div class="text-sm opacity-90">${ok ? '+' + r.gain + ' poin' : 'Streak kembali ke 0'}</div>
-        </div>
-        <div class="text-right text-sm leading-tight">${r.last ? 'Hasil akhir' : 'Soal berikutnya'}<br><span id="nx" class="text-2xl font-extrabold tabular-nums">${secs}</span></div>
-      </div>`;
+    const ok = st.reveal.gain > 0;
+    return `<div class="banner ${ok ? 'ok' : 'no'}">${ok ? 'Benar! +' + st.reveal.gain + ' poin' : 'Belum tepat'}</div>`;
   }
-  if (pickedIdx(st) >= 0 || st.q.answered) {
-    return `<div class="h-full rounded-2xl bg-card border-2 border-line flex flex-col items-center justify-center text-center px-3">
-        <span class="font-extrabold">Jawaban terkirim ✓</span>
-        <span class="text-sm text-muted tabular-nums">Menunggu pemain lain (${st.q.answeredCount}/${st.q.needed})</span>
-      </div>`;
-  }
-  return `<div class="h-full grid place-items-center text-center text-sm text-muted px-3">Jawab secepat mungkin, makin cepat makin besar poinnya.</div>`;
-}
-function belowHTML(st) {
-  if (st.phase !== 'reveal') return '';
-  const rows = st.players.slice(0, 5).map((p, i) => `
-    <div class="flex items-center gap-3 px-3 py-2 rounded-xl mb-1.5 border-2 ${p.id === st.you.id ? 'border-brand bg-card' : 'border-transparent bg-bg'}">
-      <span class="w-6 text-center text-muted tabular-nums">${i + 1}</span>
-      <span class="w-7 text-center text-xl">${p.av}</span>
-      <span class="flex-1 min-w-0 truncate">${esc(p.name)}${p.id === st.you.id ? ' (kamu)' : ''}</span>
-      <span class="font-extrabold tabular-nums">${p.score}</span>
-    </div>`).join('');
-  return `<div class="${CARD} p-4 mt-4"><h3 class="text-lg font-extrabold mb-2">Papan skor</h3>${rows}</div>`;
+  if (pickedIdx(st) >= 0) return `<p class="muted center" style="margin-top:14px">Menunggu pemain lain (${st.q.answeredCount}/${st.q.needed})…</p>`;
+  return `<p class="muted center" style="margin-top:14px">Pilih salah satu jawaban di atas.</p>`;
 }
 function viewGame(st) {
-  const q = st.q, left = Math.max(0, q.endsAt - (Date.now() + C.skew)), total = q.time * 1000;
-  const ratio = st.phase === 'reveal' ? Math.max(0, Math.min(1, left / total)) : Math.min(1, left / total);
-  const len = q.text.length;
-  const qsz = len > 110 ? 'text-base sm:text-xl' : len > 70 ? 'text-lg sm:text-2xl' : 'text-xl sm:text-3xl';
+  const q = st.q, left = Math.max(0, q.endsAt - (Date.now() + C.skew)), total = 15000;
+  const ratio = Math.min(1, left / total);
   return `
-  <section class="mx-auto w-full max-w-[760px] select-none">
-    <div id="hud" class="grid grid-cols-4 gap-2 mb-3">${hudHTML(st)}</div>
-    <div class="flex items-center gap-3 mb-3 h-4">
-      <div class="flex-1 h-3.5 rounded-full bg-line overflow-hidden" aria-hidden="true">
-        <div id="tbar" class="${barCls(ratio)}" style="width:${(ratio * 100).toFixed(1)}%"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span class="muted">Soal ${q.index + 1}/${q.total}</span>
+        <span class="muted">Skor: ${st.you.score}</span>
       </div>
-      <span id="tlab" class="w-14 text-right text-sm tabular-nums text-muted">${Math.ceil(left / 1000)} dtk</span>
-    </div>
-    <div class="${CARD} h-[132px] sm:h-[150px] p-4 flex overflow-y-auto">
-      <p class="m-auto text-center font-extrabold leading-snug ${qsz}">${esc(q.text)}</p>
-    </div>
-    <div id="opts" class="grid grid-cols-2 gap-3 mt-4">${optsHTML(st)}</div>
-    <div id="zone" class="mt-4 h-[84px]">${zoneHTML(st)}</div>
-    <div id="below">${belowHTML(st)}</div>
-  </section>`;
-}
-/* Pembaruan kecil tanpa menggambar ulang seluruh layar (supaya tap tidak "hilang") */
-function patchGame() {
-  const st = C.st; if (!st || !st.q) return;
-  const set = (sel, html) => { const el = $(sel); if (el) el.innerHTML = html; };
-  set('#hud', hudHTML(st)); set('#opts', optsHTML(st)); set('#zone', zoneHTML(st));
+      <div class="timer-bar"><div id="tbar" style="width:${(ratio * 100).toFixed(0)}%;background:${ratio > .5 ? 'var(--good)' : ratio > .25 ? 'var(--c3)' : 'var(--bad)'}"></div></div>
+      <div class="qtext">${esc(q.text)}</div>
+      <div class="opts">${optsHTML(st)}</div>
+      <div id="zone">${zoneHTML(st)}</div>
+    </div>`;
 }
 
 /* ---------- Hasil ---------- */
 function viewResult(st) {
-  const f = st.final, r = f.standings, me = st.you.id;
-  const meIdx = r.findIndex(x => x.id === me), mine = r[meIdx] || { score: 0, correct: 0, best: 0 };
-  const podium = [r[1], r[0], r[2]].map((x, k) => x ? { x, n: [2, 1, 3][k], h: ['h-24', 'h-[130px]', 'h-16'][k], bg: ['bg-c2', 'bg-c3', 'bg-c1'][k] } : null).filter(Boolean);
-  const pct = f.total ? Math.round(mine.correct / f.total * 100) : 0;
-  const headline = meIdx === 0 ? 'Kamu juara satu!' : meIdx > 0 && meIdx < 3 ? 'Masuk tiga besar!' : 'Selesai! Coba lagi untuk naik peringkat.';
-  const host = st.players.find(p => p.id === st.hostId);
-  const canRematch = st.hostId === me || !(host && host.connected);
-  const stat = (v, l) => `<div class="rounded-2xl bg-bg p-3.5 text-center"><b class="block text-3xl font-extrabold tabular-nums leading-none mb-1">${v}</b><span class="text-xs text-muted">${l}</span></div>`;
+  const rows = st.standings.map((p, i) => `
+    <li><span class="rank">${i + 1}</span><span class="av">${p.av}</span><span class="nm" style="flex:1">${esc(p.name)}</span><b>${p.score}</b></li>`).join('');
   return `
-  <section class="mx-auto w-full max-w-[760px]">
-    ${f.endedEarly ? `<div class="rounded-2xl bg-c3 text-white px-4 py-3 mb-4">Game berakhir lebih awal karena pemain yang tersisa kurang dari ${st.min}.</div>` : ''}
-    <div class="${CARD} p-5 text-center">
-      <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">${headline}</h1>
-      <p class="text-muted mt-1">${esc(st.quizTitle)}</p>
-      <div class="flex items-end justify-center gap-3 mt-6 mb-5">
-        ${podium.map(o => `
-          <div class="flex-1 max-w-[170px]">
-            <div class="text-sm mb-1.5 truncate"><span class="block text-3xl">${o.x.av}</span>${esc(o.x.name)}<br><span class="tabular-nums">${o.x.score}</span></div>
-            <div class="${o.h} ${o.bg} rounded-t-xl pt-2 text-white text-3xl font-extrabold">${o.n}</div>
-          </div>`).join('')}
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        ${stat(mine.score, 'Total skor')}${stat('#' + (meIdx + 1), 'Peringkat')}${stat(pct + '%', `Akurasi (${mine.correct}/${f.total})`)}${stat(mine.best, 'Streak terbaik')}
-      </div>
-      <div class="flex flex-wrap justify-center gap-3">
-        ${canRematch ? `<button data-act="rematch" class="${btn()}">Main lagi (ruang tunggu)</button>` : `<span class="grid place-items-center text-muted text-sm px-2">Menunggu host mengulang…</span>`}
-        <button data-act="leave" class="${btn('ghost')}">Keluar ruang</button>
-      </div>
+    <div class="card center">
+      <h1>Game selesai!</h1>
+      <p class="muted">${esc(st.quizTitle)}</p>
     </div>
-
-    <div class="${CARD} p-5 mt-4">
-      <h2 class="text-xl font-extrabold mb-3">Klasemen akhir</h2>
-      ${r.map((x, i) => `
-        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1.5 border-2 ${x.id === me ? 'border-brand bg-card' : 'border-transparent bg-bg'}">
-          <span class="w-6 text-center text-lg text-muted tabular-nums">${i + 1}</span>
-          <span class="w-8 text-center text-2xl">${x.av}</span>
-          <span class="flex-1 min-w-0 truncate">${esc(x.name)}${x.id === me ? ' (kamu)' : ''}</span>
-          <span class="text-lg font-extrabold tabular-nums">${x.score}</span>
-        </div>`).join('')}
+    <div class="card">
+      <h2>Hasil akhir</h2>
+      <ul class="standings" style="margin-top:12px">${rows}</ul>
     </div>
-
-    <div class="${CARD} p-5 mt-4">
-      <h2 class="text-xl font-extrabold mb-3">Pembahasan</h2>
-      ${f.log.map((l, i) => `
-        <div class="rounded-xl bg-bg p-3.5 mb-2 border-l-[6px] ${l.ok ? 'border-good' : 'border-bad'} text-[15px]">
-          <b>${i + 1}. ${esc(l.q)}</b>
-          <span class="block text-sm text-muted mt-1">${l.ok ? 'Benar: ' + esc(l.right) + ' (+' + l.gain + ')' : 'Jawabanmu: ' + esc(l.picked) + ' · Yang benar: ' + esc(l.right)}</span>
-        </div>`).join('')}
-    </div>
-  </section>`;
+    <button class="btn ghost" data-act="leave" style="margin-top:16px">Kembali ke beranda</button>`;
 }
 
-/* =====================================================================
-   KONEKSI REALTIME
-   ===================================================================== */
-function connect() {
-  disconnect();
-  const s = C.session; if (!s) return;
-  const es = new EventSource(`/api/events?code=${encodeURIComponent(s.code)}&pid=${encodeURIComponent(s.pid)}&token=${encodeURIComponent(s.token)}`);
-  C.es = es;
-  es.addEventListener('state', e => {
+/* ---------- Polling ---------- */
+function setOffline(v) { $('#offline').classList.toggle('show', v); }
+async function pollOnce() {
+  if (!C.session || C.inFlight) return;
+  C.inFlight = true;
+  try {
+    const st = await api('/api/state', authBody());
     setOffline(false);
-    try { onState(JSON.parse(e.data)); } catch (err) { console.error(err); }
-  });
-  es.onerror = () => {
-    if (es.readyState === 2) endSession('Sesi berakhir atau ruang sudah ditutup.');   // ditolak server (404)
-    else setOffline(true);                                                             // jaringan putus, otomatis mencoba lagi
-  };
+    onState(st);
+  } catch (e) {
+    if (e.status === 401 || e.status === 404) endSession(e.message);
+    else setOffline(true);
+  } finally { C.inFlight = false; }
 }
-function disconnect() { if (C.es) { C.es.close(); C.es = null; } setOffline(false); }
+function startPolling() { stopPolling(); pollOnce(); C.poller = setInterval(pollOnce, 1000); }
+function stopPolling() { if (C.poller) clearInterval(C.poller); C.poller = null; setOffline(false); }
 function endSession(msg) {
-  disconnect(); C.session = null; C.st = null; C.picked = -1; C.renderKey = ''; C.err = msg || '';
-  sess.del('kq_session'); closeModal(); render();
+  stopPolling(); C.session = null; C.st = null; C.picked = -1; C.renderKey = ''; C.err = msg || '';
+  sess.del('kq_session'); render();
 }
 function enterRoom(r) {
   C.session = { code: r.code, pid: r.pid, token: r.token }; sess.set('kq_session', C.session);
-  C.st = null; C.renderKey = ''; C.picked = -1; C.err = ''; C.invited = false;
-  history.replaceState(null, '', location.pathname);
-  render(); connect();
+  C.st = null; C.renderKey = ''; C.picked = -1; C.err = '';
+  render(); startPolling();
 }
 function onState(st) {
-  const prev = C.st;
   C.st = st; C.skew = st.now - Date.now();
   const key = st.phase + ':' + (st.q ? st.q.index : '');
-  if (key !== C.renderKey) {
-    C.renderKey = key; C.picked = st.q ? st.q.picked : -1;
-    if (st.phase === 'reveal') (st.reveal.gain > 0 ? sfx.ok : sfx.no)();
-    if (st.phase === 'finished') sfx.win();
-    render();
-    if (st.phase === 'question' || st.phase === 'countdown') window.scrollTo(0, 0);
-  } else if (st.phase === 'question') {
-    if (st.q.picked >= 0) C.picked = st.q.picked;
-    patchGame();
-  } else {
-    if (st.phase === 'lobby' && prev && st.players.length > prev.players.length) sfx.join();
-    render();
-  }
+  if (key !== C.renderKey) { C.renderKey = key; C.picked = st.q ? st.q.picked : -1; render(); }
+  else if (st.phase === 'question') { const el = $('#zone'); if (el) el.innerHTML = zoneHTML(st); }
+  else render();
 }
-
-/* Detak tampilan: timer, hitung mundur (dihitung dari jam server) */
 setInterval(() => {
   const st = C.st; if (!st) return;
   const t = Date.now() + C.skew;
-  if (st.phase === 'countdown') {
-    const el = $('#cd'); if (!el) return;
-    const n = String(Math.max(1, Math.ceil((st.endsAt - t) / 1000)));
-    if (el.textContent !== n) { el.textContent = n; sfx.tick(); }
-  } else if (st.phase === 'question') {
-    const left = Math.max(0, st.q.endsAt - t), r = Math.min(1, left / (st.q.time * 1000));
-    const bar = $('#tbar'), lab = $('#tlab');
-    if (bar) { bar.style.width = (r * 100) + '%'; bar.className = barCls(r); }
-    if (lab) lab.textContent = Math.ceil(left / 1000) + ' dtk';
-    const sec = Math.ceil(left / 1000);
-    if (sec <= 5 && sec > 0 && sec !== C.lastTickSec && pickedIdx(st) < 0) { C.lastTickSec = sec; sfx.tick(); }
-  } else if (st.phase === 'reveal') {
-    const el = $('#nx'); if (el) el.textContent = Math.max(0, Math.ceil((st.reveal.nextAt - t) / 1000));
+  if (st.phase === 'countdown') { const el = $('#cd'); if (el) el.textContent = Math.max(1, Math.ceil((st.endsAt - t) / 1000)); }
+  else if (st.phase === 'question') {
+    const left = Math.max(0, st.q.endsAt - t), r = Math.min(1, left / 15000);
+    const bar = $('#tbar'); if (bar) { bar.style.width = (r * 100) + '%'; bar.style.background = r > .5 ? 'var(--good)' : r > .25 ? 'var(--c3)' : 'var(--bad)'; }
   }
-}, 100);
+}, 200);
 
-/* =====================================================================
-   AKSI
-   ===================================================================== */
-function setErr(m) { C.err = m; const el = $('#err'); if (el) el.textContent = m; }
+/* ---------- Aksi ---------- */
+function setErr(m) { C.err = m; render(); }
 async function createRoom() {
-  if (C.busy) return;
   const name = C.name.trim();
   if (!name) return setErr('Isi namamu dulu.');
   if (!C.quizId) return setErr('Pilih kuis dulu.');
-  C.busy = true; setErr('');
   try { enterRoom(await api('/api/create', { name, quizId: C.quizId })); } catch (e) { setErr(e.message); }
-  C.busy = false;
 }
 async function joinRoom() {
-  if (C.busy) return;
   const name = C.name.trim(), code = C.joinCode.trim().toUpperCase();
   if (!name) return setErr('Isi namamu dulu.');
   if (code.length < 5) return setErr('Kode ruang terdiri dari 5 karakter.');
-  C.busy = true; setErr('');
   try { enterRoom(await api('/api/join', { name, code })); } catch (e) { setErr(e.message); }
-  C.busy = false;
-}
-async function startGame() {
-  try { await api('/api/start', authBody()); } catch (e) { toast(e.message); }
 }
 async function pick(i) {
   const st = C.st;
   if (!st || st.phase !== 'question' || pickedIdx(st) >= 0) return;
-  C.picked = i; patchGame();
-  try { const r = await api('/api/answer', { ...authBody(), idx: i }); if (!r.ok) { C.picked = st.q.picked; patchGame(); } }
-  catch (e) { C.picked = -1; patchGame(); toast(e.message); }
-}
-async function leaveRoom() {
-  const a = C.session ? authBody() : null;
-  endSession('');
-  if (a) { try { await api('/api/leave', a); } catch (e) {} }
-}
-async function shareLink() {
-  const st = C.st; if (!st) return;
-  const url = `${location.origin}/?room=${st.code}`;
-  const text = `Ayo main kuis bareng! Kode ruang: ${st.code}`;
-  try { if (navigator.share) { await navigator.share({ title: 'KuisKu', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-  try { await navigator.clipboard.writeText(url); toast('Link disalin.'); return; } catch (e) {}
-  const inp = $('#lnk');
-  if (inp) { inp.focus(); inp.select(); try { if (document.execCommand('copy')) { toast('Link disalin.'); return; } } catch (e) {} }
-  toast('Tekan lama pada link lalu salin.');
+  C.picked = i; render();
+  try { await api('/api/answer', { ...authBody(), idx: i }); pollOnce(); } catch (e) { C.picked = -1; render(); }
 }
 
 document.addEventListener('input', e => {
@@ -533,85 +310,18 @@ document.addEventListener('input', e => {
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   switch (el.dataset.act) {
-    case 'mute':   muted = !muted; store.set('kq_muted', muted); render(); break;
-    case 'logo':   if (C.session) { if (C.st && C.st.phase !== 'lobby' && C.st.phase !== 'finished') askConfirm('Keluar dari permainan? Skormu tidak akan disimpan.', leaveRoom); else leaveRoom(); } break;
-    case 'leave':  if (C.st && (C.st.phase === 'countdown' || C.st.phase === 'question' || C.st.phase === 'reveal')) askConfirm('Keluar dari permainan? Skormu tidak akan disimpan.', leaveRoom); else leaveRoom(); break;
     case 'pick':   C.quizId = el.dataset.id; render(); break;
     case 'create': createRoom(); break;
     case 'join':   joinRoom(); break;
-    case 'start':  startGame(); break;
+    case 'start':  api('/api/start', authBody()).then(pollOnce).catch(err => setErr(err.message)); break;
     case 'ans':    pick(+el.dataset.i); break;
-    case 'share':  shareLink(); break;
-    case 'rematch': api('/api/rematch', authBody()).catch(err => toast(err.message)); break;
-    case 'mcancel': closeModal(); pendingYes = null; break;
-    case 'myes':   { closeModal(); const fn = pendingYes; pendingYes = null; if (fn) fn(); break; }
+    case 'leave':  endSession(''); break;
   }
 });
-document.addEventListener('keydown', e => {
-  if (e.target.matches('input,textarea,select') || document.getElementById('ov')) {
-    if (e.key === 'Enter' && !C.session && e.target.id === 'code') joinRoom();
-    return;
-  }
-  const st = C.st;
-  if (st && st.phase === 'question' && ['1', '2', '3', '4'].includes(e.key)) pick(+e.key - 1);
-});
 
-/* =====================================================================
-   PEMANASAN TAILWIND
-   Tailwind CDN hanya membuat CSS untuk kelas yang sudah muncul di halaman.
-   Semua layar dirender sekali di elemen tersembunyi supaya tidak ada
-   kedipan atau loncatan tampilan saat pindah layar.
-   ===================================================================== */
-function fakeState(phase, o = {}) {
-  const players = [
-    { id: 'a', name: 'Kamu', av: '🦊', score: 1200, connected: true, answered: true },
-    { id: 'b', name: 'Sari', av: '🐼', score: 900, connected: true, answered: false },
-    { id: 'c', name: 'Dimas', av: '🐯', score: 400, connected: false, answered: false }
-  ];
-  const st = { now: Date.now(), code: 'ABCDE', phase, quizTitle: 'Contoh kuis', hostId: 'a', min: 2, max: 30, connected: 2,
-    you: { id: 'a', score: 1200, streak: 3, best: 3, correct: 3, rank: 1 }, players, ...o };
-  if (phase === 'countdown') st.endsAt = Date.now() + 4000;
-  if (phase === 'question' || phase === 'reveal') {
-    st.q = { index: 1, total: 5, text: 'Contoh pertanyaan?', options: ['A', 'B', 'C', 'D'], time: 15, endsAt: Date.now() + 9000, picked: -1, answered: false, answeredCount: 1, needed: 2, ...(o.q || {}) };
-    if (phase === 'reveal') st.reveal = { correct: 0, gain: 800, nextAt: Date.now() + 5000, last: false, ...(o.reveal || {}) };
-  }
-  if (phase === 'finished') st.final = { total: 5, endedEarly: true, standings: players.map(p => ({ ...p, correct: 2, best: 2 })),
-    log: [{ q: 'x', ok: true, picked: 'A', right: 'A', gain: 800 }, { q: 'y', ok: false, picked: 'B', right: 'C', gain: 0 }] };
-  return st;
-}
-function warmUpTailwind() {
-  const keep = { st: C.st, picked: C.picked, session: C.session, err: C.err, invited: C.invited };
-  const parts = [];
-  try {
-    C.err = 'Contoh pesan'; C.invited = true; C.quizzes = C.quizzes.length ? C.quizzes : [{ id: 'x', title: 'Contoh', count: 5 }]; C.quizId = C.quizId || C.quizzes[0].id;
-    parts.push(viewHome(), viewConnecting());
-    C.err = keep.err; C.invited = keep.invited;
-    parts.push(viewLobby(fakeState('lobby', { connected: 1 })), viewLobby(fakeState('lobby')), viewLobby(fakeState('lobby', { hostId: 'b' })));
-    parts.push(viewCountdown(fakeState('countdown')));
-    C.picked = -1; parts.push(viewGame(fakeState('question')));
-    C.picked = 2;  parts.push(viewGame(fakeState('question')));
-    C.picked = -1; parts.push(viewGame(fakeState('reveal', { q: { picked: 1, answered: true } })));
-    parts.push(viewGame(fakeState('reveal', { q: { picked: 0, answered: true } })));
-    parts.push(viewGame(fakeState('reveal', { reveal: { gain: 0, last: true } })));
-    parts.push(viewResult(fakeState('finished')), viewResult(fakeState('finished', { hostId: 'b' })));
-  } catch (err) { console.warn(err); }
-  parts.push(confirmHTML('x'));
-  parts.push('<i class="bg-good bg-c3 bg-bad fixed left-1/2 -translate-x-1/2 bottom-16 z-50 max-w-[90vw] rounded-2xl bg-ink text-bg px-5 py-3 text-sm text-center"></i>');
-  C.st = keep.st; C.picked = keep.picked; C.session = keep.session; C.err = keep.err; C.invited = keep.invited;
-  $('#seed').innerHTML = parts.join('').replace(/ id="[^"]*"/g, '').replace(/<(button|input)/g, '<$1 tabindex="-1"');
-}
-
-/* ---------- Mulai ---------- */
 (async function boot() {
-  const params = new URLSearchParams(location.search);
-  const room = (params.get('room') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
-  if (room) { C.joinCode = room; C.invited = !C.session; }
   render();
-  warmUpTailwind();
-  const showApp = () => $('#app').classList.add('ready');
-  requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(showApp, 200)));
-  setTimeout(showApp, 1800);
-  if (C.session) connect();
+  if (C.session) startPolling();
   try {
     C.quizzes = await (await fetch('/api/quizzes')).json();
     if (!C.quizId && C.quizzes.length) C.quizId = C.quizzes[0].id;
